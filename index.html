@@ -397,8 +397,49 @@
         });
         document.getElementById('reservation-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            this.style.display = 'none';
-            document.getElementById('reservation-success').classList.remove('hidden');
+
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.innerHTML;
+
+            // Show loading state
+            submitButton.innerHTML = 'Sending...';
+            submitButton.disabled = true;
+
+            // Collect form values
+            const name = this.querySelector('input[type="text"]').value;
+            const email = this.querySelector('input[type="email"]').value;
+            const phone = this.querySelector('input[type="tel"]').value;
+            const selects = this.querySelectorAll('select');
+            const guests = selects[0] ? selects[0].value : '';
+            const time = selects[1] ? selects[1].value : '';
+            const date = this.querySelector('input[type="date"]').value;
+            const specialRequests = this.querySelector('textarea').value;
+
+            const templateParams = {
+                from_name: name,
+                from_email: email,
+                phone: phone,
+                guests: guests,
+                reservation_date: date,
+                reservation_time: time,
+                special_requests: specialRequests,
+                // Fallback for templates expecting a single message field
+                message: `Reservation request from ${name}\nEmail: ${email}\nPhone: ${phone}\nGuests: ${guests}\nDate: ${date}\nTime: ${time}\nSpecial requests: ${specialRequests || 'None'}`,
+                to_email: 'tejaswin485@gmail.com'
+            };
+
+            // Send reservation email via EmailJS
+            emailjs.send('service_8p1emxh', 'template_d1czulg', templateParams)
+                .then(function(response) {
+                    console.log('Reservation email sent!', response.status, response.text);
+                    document.getElementById('reservation-form').style.display = 'none';
+                    document.getElementById('reservation-success').classList.remove('hidden');
+                }, function(error) {
+                    console.error('Reservation email failed...', error);
+                    alert('Failed to submit reservation. Please try again or contact us at reservations@laurarestaurant.com');
+                    submitButton.innerHTML = originalButtonText;
+                    submitButton.disabled = false;
+                });
         });
         
         // Contact Form with EmailJS Integration
@@ -435,4 +476,4 @@
         });
     </script>
 </body>
-</html
+</html>
